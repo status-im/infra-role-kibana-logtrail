@@ -1,9 +1,12 @@
 ---
+logtrail_kibana_version: ~
+logtrail_kibana_plugins_path: ~
+logtrail_config_path: '{{ logtrail_kibana_plugins_path | mandatory }}/logtrail/logtrail.json'
+
 logtrail_version: '0.1.31'
-logtrail_zip: 'logtrail-{{ kibana_version }}-{{ logtrail_version }}.zip'
+logtrail_zip: 'logtrail-{{ logtrail_kibana_version | mandatory }}-{{ logtrail_version }}.zip'
 logtrail_url: 'https://github.com/sivasamyk/logtrail/releases/download/v{{ logtrail_version }}/{{ logtrail_zip }}'
 
-logtrail_config_path: '{{ kibana_cont_vol }}/plugins/logtrail/logtrail.json'
 logtrail_config:
   version : 2
   index_patterns:
