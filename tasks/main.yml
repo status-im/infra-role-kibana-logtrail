@@ -1,0 +1,29 @@
+---
+- name: Check if LogTrail plugin is installed
+  shell: 'docker exec "{{ kibana_cont_name }}" kibana-plugin list'
+  register: logtrail_plugin_check
+
+# Warning: This step can get stuck - https://github.com/elastic/kibana/issues/19678
+- name: Install LogTrail plugin (This can be slow)
+  command: 'docker exec "{{ kibana_cont_name }}" timeout 4m kibana-plugin install {{ logtrail_url }}'
+  register: logtrail_plugin_install
+  ignore_errors: true
+  when: logtrail_plugin_check.stdout.find("logtrail") == -1
+
+- name: Verify LogTrail installation succeeded or timed out
+  assert:
+    that: logtrail_plugin_install.rc in [0, 124]
+  when: logtrail_plugin_check.stdout.find("logtrail") == -1
+
+- name: Create LogTrail config
+  copy:
+    dest: '{{ logtrail_config_path }}'
+    content: '{{ logtrail_config | to_nice_json }}'
+    owner: '{{ kibana_host_uid }}'
+    group: docker
+
+- name: Restart Kibana container
+  docker_container:
+    name: '{{ kibana_cont_name }}'
+    restart: true
+  when: logtrail_plugin_install.changed
